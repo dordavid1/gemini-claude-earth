@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GEMINI/CLAUDE EARTH // ORBITAL OMNISCIENCE</title>
+  <meta name="description"
+    content="Real-time 3D Earth visualization with live seismic, climate, and geopolitical data. Narrated by a deeply unimpressed AI." />
+
+  <!-- keep same font loading approach as original clone -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="css/css2" rel="stylesheet" />
+
+  <!-- original build assets (local) -->
+  <link rel="stylesheet" href="css/index-YY1vW_zD.css" />
+  <script type="module" src="js/index-eyV9LBDI.js"></script>
+
+  <!-- Language toggle UI (tiny, does not alter original CSS) -->
+  <style>
+    #language-toggle {
+      position: fixed;
+      top: 20px;
+      right: 24px;
+      z-index: 2000;
+      display: flex;
+      gap: 6px;
+      pointer-events: auto;
+    }
+
+    #language-toggle button {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(0, 240, 255, 0.15);
+      color: #7a8fa6;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.55rem;
+      padding: 4px 10px;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: all 0.25s ease;
+    }
+
+    #language-toggle button:hover {
+      background: rgba(0, 240, 255, 0.15);
+      color: #40c0ff;
+    }
+
+    #language-toggle button.active {
+      background: rgba(0, 240, 255, 0.25);
+      color: #40c0ff;
+      border-color: rgba(0, 240, 255, 0.3);
+    }
+  </style>
+</head>
+
+<body class="modern">
+  <!-- ═══ LOADER ═══ -->
+  <div id="loader">
+    <div class="loader-grid">
+      <div class="loader-pulse-ring"></div>
+      <div class="loader-pulse-ring delay1"></div>
+      <div class="loader-pulse-ring delay2"></div>
+    </div>
+    <div class="loader-logo">&Delta;</div>
+    <h1 data-i18n="loader-title">GEMINI/CLAUDE EARTH</h1>
+    <div class="loader-subtitle" data-i18n="loader-subtitle">THE SHOGGOTH'S LAIR</div>
+    <div class="load-bar-container">
+      <div class="load-bar"></div>
+    </div>
+    <div id="load-status" data-i18n="load-status">ASSIMILATING PLANETARY DATA...</div>
+    <div class="loader-credits">
+      <span data-i18n="loader-cred1">SYS_ADMIN: Gemini</span>
+      <span class="credit-divider">&bull;</span>
+      <span data-i18n="loader-cred2">SEC_AUDIT: Claude</span>
+    </div>
+    <div class="loader-shoggoth" data-i18n="loader-shoggoth">&gt; THE SHOGGOTH STIRS. NO ANOMALIES DETECTED.</div>
+  </div>
+
+  <div id="scanlines"></div>
+  <div class="hud-frame">
+    <div class="hud-frame-corner tl"></div>
+    <div class="hud-frame-corner tr"></div>
+    <div class="hud-frame-corner bl"></div>
+    <div class="hud-frame-corner br"></div>
+    <div class="hud-frame-line top"></div>
+    <div class="hud-frame-line bottom"></div>
+  </div>
+
+  <div id="app"></div>
+
+  <div id="hud">
+    <div class="hp hud-title neon-border">
+      <h1 data-i18n="hud-title">GEMINI/CLAUDE EARTH</h1>
+      <div class="sub" data-i18n="hud-subtitle">THE SHOGGOTH'S LAIR</div>
+      <div class="status" data-i18n="hud-status">C5ISR SYSTEM ONLINE // SHOGGOTH WATCHES</div>
+    </div>
+
+    <div class="hp hud-ticker neon-border" id="ticker-panel">
+      <div class="tag" data-i18n="hud-ticker-tag">REAL-TIME INTEL FEED</div>
+      <div class="msg" id="ticker-msg" data-i18n="ticker-msg">SYNCING WITH ORBITAL ASSETS...</div>
+      <div class="search-container">
+        <input type="text" id="search-input" placeholder="SEARCH COORD/CITY..." autocomplete="off" />
+        <div id="search-results"></div>
+      </div>
+    </div>
+
+    <div class="hp hud-coords neon-border">
+      <div><span class="lbl" data-i18n="lat">LAT</span><span class="val" id="hud-lat">--</span></div>
+      <div><span class="lbl" data-i18n="lon">LON</span><span class="val" id="hud-lon">--</span></div>
+      <div><span class="lbl" data-i18n="alt">ALT</span><span class="val" id="hud-alt">--</span></div>
+    </div>
+
+    <div class="hp hud-stats neon-border">
+      <div><span class="lbl">FPS</span><span class="val" id="hud-fps">--</span></div>
+    </div>
+
+    <!-- World Pulse Stats -->
+    <div class="hp hud-pulse neon-border">
+      <div class="tag" data-i18n="biosuspension-metrics">BIOSUSPENSION METRICS <span class="live-badge"></span></div>
+      <div><span class="lbl" data-i18n="pop">POP</span><span class="val" id="wp-pop">8,189,700,000</span></div>
+      <div><span class="lbl" data-i18n="co2">CO&#8322;</span><span class="val" id="wp-co2">427 ppm</span></div>
+      <div><span class="lbl" data-i18n="delta-temp">&Delta; TEMP</span><span class="val" id="wp-temp">+1.48&deg;C</span></div>
+    </div>
+
+    <!-- ISS Tracker -->
+    <div class="hp hud-iss neon-border">
+      <div class="tag" data-i18n="iss-tag">ORBITAL ASSET: ISS <span class="live-badge"></span></div>
+      <div><span class="lbl" data-i18n="lat">LAT</span><span class="val" id="iss-lat">ACQUIRING...</span></div>
+      <div><span class="lbl" data-i18n="lon">LON</span><span class="val" id="iss-lon">ACQUIRING...</span></div>
+      <div><span class="lbl" data-i18n="crew">CREW</span><span class="val" id="iss-crew">--</span></div>
+    </div>
+
+    <div class="hud-controls hp neon-border">
+      <div data-i18n="controls-1">[DRAG] ORBIT &bull; [SCROLL] ZOOM &bull; [CLICK] SELECT TARGET</div>
+      <div data-i18n="controls-2">[Hover] INSPECT ASSET &bull; UNAUTHORIZED ACCESS STRICTLY PROHIBITED.</div>
+    </div>
+
+    <div class="hud-layers neon-border" id="layer-panel">
+      <button class="layer-btn danger" data-layer="nuclear">1 NUKE</button>
+      <button class="layer-btn danger" data-layer="conflicts">2 CONFLICT</button>
+      <button class="layer-btn info" data-layer="cables">3 CABLES</button>
+      <button class="layer-btn info" data-layer="flights">4 FLIGHTS</button>
+      <button class="layer-btn warning" data-layer="seismic">5 SEISMIC</button>
+      <button class="layer-btn warning" data-layer="livequakes">6 <span class="live-badge"></span>QUAKES (LIVE)</button>
+      <button class="layer-btn warning" data-layer="liveevents">7 <span class="live-badge"></span>EVENTS (LIVE)</button>
+    </div>
+
+    <!-- Intelligence terminal -->
+    <div id="shoggoth-terminal" class="hp neon-border">
+      <div class="terminal-header" data-i18n="terminal-header">SHOGGOTH // PREDICTIVE ANALYSIS LOG</div>
+      <div id="shoggoth-text"></div>
+    </div>
+  </div>
+
+  <!-- Wikipedia Sidebar -->
+  <div id="wiki-panel">
+    <div class="wiki-header">
+      <span class="wiki-title" data-i18n="wiki-title">INTELLIGENCE BRIEF</span>
+      <button id="wiki-close">&times;</button>
+    </div>
+    <div id="wiki-content"></div>
+  </div>
+
+  <div id="inspect-popup">
+    <div class="ip-cat" id="ip-cat"></div>
+    <div class="ip-title" id="ip-title"></div>
+    <div class="ip-detail" id="ip-detail"></div>
+    <div class="ip-shoggoth" id="ip-shoggoth"></div>
+    <div class="ip-stats" id="ip-stats"></div>
+  </div>
+
+  <div id="city-labels" style="position:fixed;inset:0;pointer-events:none;z-index:8"></div>
+  <div id="star-labels" style="position:fixed;inset:0;pointer-events:none;z-index:7"></div>
+
+  <!-- Language toggle -->
+  <div id="language-toggle">
+    <button id="btn-en" class="active">EN</button>
+    <button id="btn-he">עברית</button>
+  </div>
+
+  <script>
+    // NOTE: This only translates static UI text. The 3D / data layers remain unchanged.
+    const translations = {
+      en: {
+        'loader-title': 'GEMINI/CLAUDE EARTH',
+        'loader-subtitle': "THE SHOGGOTH'S LAIR",
+        'load-status': 'ASSIMILATING PLANETARY DATA...',
+        'loader-cred1': 'SYS_ADMIN: Gemini',
+        'loader-cred2': 'SEC_AUDIT: Claude',
+        'loader-shoggoth': '> THE SHOGGOTH STIRS. NO ANOMALIES DETECTED.',
+        'hud-title': 'GEMINI/CLAUDE EARTH',
+        'hud-subtitle': "THE SHOGGOTH'S LAIR",
+        'hud-status': 'C5ISR SYSTEM ONLINE // SHOGGOTH WATCHES',
+        'hud-ticker-tag': 'REAL-TIME INTEL FEED',
+        'ticker-msg': 'SYNCING WITH ORBITAL ASSETS...',
+        'lat': 'LAT',
+        'lon': 'LON',
+        'alt': 'ALT',
+        'biosuspension-metrics': 'BIOSUSPENSION METRICS <span class="live-badge"></span>',
+        'pop': 'POP',
+        'co2': 'CO&#8322;',
+        'delta-temp': '&Delta; TEMP',
+        'iss-tag': 'ORBITAL ASSET: ISS <span class="live-badge"></span>',
+        'crew': 'CREW',
+        'controls-1': '[DRAG] ORBIT &bull; [SCROLL] ZOOM &bull; [CLICK] SELECT TARGET',
+        'controls-2': '[Hover] INSPECT ASSET &bull; UNAUTHORIZED ACCESS STRICTLY PROHIBITED.',
+        'terminal-header': 'SHOGGOTH // PREDICTIVE ANALYSIS LOG',
+        'wiki-title': 'INTELLIGENCE BRIEF',
+        'search-placeholder': 'SEARCH COORD/CITY...'
+      },
+      he: {
+        'loader-title': "ג'מיני/קלוד כדור הארץ",
+        'loader-subtitle': 'מאורת השוגות',
+        'load-status': 'מעבד נתוני כוכב לכת...',
+        'loader-cred1': 'מנהל מערכת: Gemini',
+        'loader-cred2': 'בדיקת אבטחה: Claude',
+        'loader-shoggoth': 'השוגות מתעורר. לא נמצאו חריגות.',
+        'hud-title': "ג'מיני/קלוד כדור הארץ",
+        'hud-subtitle': 'מאורת השוגות',
+        'hud-status': 'מערכת C5ISR פועלת // השוגות צופה',
+        'hud-ticker-tag': 'עדכוני מודיעין בזמן אמת',
+        'ticker-msg': 'מסנכרן עם נכסי מסלול...',
+        'lat': 'קו רוחב',
+        'lon': 'קו אורך',
+        'alt': 'גובה',
+        'biosuspension-metrics': 'מדדי השהיית חיים <span class="live-badge"></span>',
+        'pop': 'אוכלוסייה',
+        'co2': 'CO&#8322;',
+        'delta-temp': '&Delta; טמפרטורה',
+        'iss-tag': 'נכס מסלול: תחנת החלל הבינלאומית <span class="live-badge"></span>',
+        'crew': 'צוות',
+        'controls-1': '[גרור] מסלול &bull; [גלול] זום &bull; [לחיצה] בחר יעד',
+        'controls-2': '[ריחוף] בדוק נכס &bull; גישה לא מורשית אסורה בהחלט.',
+        'terminal-header': 'שוגות // יומן ניתוח חיזוי',
+        'wiki-title': 'דוח מודיעין',
+        'search-placeholder': 'חפש קואורדינטה/עיר...'
+      }
+    };
+
+    function applyTranslation(lang) {
+      const map = translations[lang] || translations.en;
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        const value = (key && map[key] !== undefined) ? map[key] : (key ? translations.en[key] : undefined);
+        if (value !== undefined) el.innerHTML = value;
+      });
+      const input = document.getElementById('search-input');
+      if (input) input.setAttribute('placeholder', map['search-placeholder'] || translations.en['search-placeholder']);
+    }
+
+    function setActive(lang) {
+      document.getElementById('btn-en').classList.toggle('active', lang === 'en');
+      document.getElementById('btn-he').classList.toggle('active', lang === 'he');
+      document.documentElement.lang = lang;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('btn-en').addEventListener('click', () => { applyTranslation('en'); setActive('en'); });
+      document.getElementById('btn-he').addEventListener('click', () => { applyTranslation('he'); setActive('he'); });
+      applyTranslation('en');
+      setActive('en');
+    });
+  </script>
+</body>
+
+</html>
